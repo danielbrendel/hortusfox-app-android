@@ -135,9 +135,17 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                     MainActivity.performMenuSelection = false;
-                    webView.loadUrl(BuildConfig.BASE_URL + "/search");
+                    webView.loadUrl(BuildConfig.BASE_URL + "/tasks");
                     return true;
                 } else if (item.getItemId() == R.id.menu4) {
+                    if (MainActivity.doNotDoubleLoad) {
+                        MainActivity.doNotDoubleLoad = false;
+                        return true;
+                    }
+                    MainActivity.performMenuSelection = false;
+                    webView.loadUrl(BuildConfig.BASE_URL + "/search");
+                    return true;
+                } else if (item.getItemId() == R.id.menu5) {
                     if (MainActivity.doNotDoubleLoad) {
                         MainActivity.doNotDoubleLoad = false;
                         return true;
@@ -195,9 +203,12 @@ public class MainActivity extends AppCompatActivity {
                     if (url.equals(BuildConfig.BASE_URL + "/")) {
                         MainActivity.doNotDoubleLoad = true;
                         MainActivity.this.setOpenNavMenu(0);
-                    } else if (url.equals(BuildConfig.BASE_URL + "/search")) {
+                    } else if (url.equals(BuildConfig.BASE_URL + "/tasks")) {
                         MainActivity.doNotDoubleLoad = true;
                         MainActivity.this.setOpenNavMenu(2);
+                    } else if (url.equals(BuildConfig.BASE_URL + "/search")) {
+                        MainActivity.doNotDoubleLoad = true;
+                        MainActivity.this.setOpenNavMenu(3);
                     } else if (url.equals(BuildConfig.BASE_URL + "/profile")) {
                         MainActivity.doNotDoubleLoad = true;
                         MainActivity.this.setOpenNavMenu(3);
@@ -349,6 +360,8 @@ public class MainActivity extends AppCompatActivity {
             navigationView.setSelectedItemId(R.id.menu3);
         } else if (menu == 3) {
             navigationView.setSelectedItemId(R.id.menu4);
+        } else if (menu == 4) {
+            navigationView.setSelectedItemId(R.id.menu5);
         }
     }
 

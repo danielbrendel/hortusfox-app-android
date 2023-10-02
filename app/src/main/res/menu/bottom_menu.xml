@@ -9,12 +9,18 @@
         android:id="@+id/menu2"
         android:icon="@drawable/ic_addplant"
         android:title="Hinzufügen" />
+
     <item
         android:id="@+id/menu3"
+        android:icon="@drawable/ic_tasks"
+        android:title="Aufgaben" />
+
+    <item
+        android:id="@+id/menu4"
         android:icon="@drawable/ic_search"
         android:title="Suche" />
     <item
-        android:id="@+id/menu4"
+        android:id="@+id/menu5"
         android:icon="@drawable/ic_profile"
         android:title="Profil" />
 </menu>
