@@ -194,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
                     MainActivity.webAppLoaded = true;
                 }
 
+                view.loadUrl("javascript:(function(){ let app = document.getElementById('app'); if (app) { app.style.marginBottom = '50px'; } })();");
                 view.loadUrl("javascript:(function(){ let nav = document.getElementsByTagName('nav'); if (nav[0].classList.contains('navbar')) { nav[0].style.backgroundColor = '#454545'; nav[0].classList.add('is-fixed-top'); } })();");
                 view.loadUrl("javascript:(function(){ let sorting = document.getElementsByClassName('nav-sorting'); if (sorting !== null) { sorting[0].style.marginTop = '52px'; } })();");
                 view.loadUrl("javascript:(function(){ let container = document.getElementsByClassName('container'); if (container) { container[0].style.marginTop = '45px'; } })();");
