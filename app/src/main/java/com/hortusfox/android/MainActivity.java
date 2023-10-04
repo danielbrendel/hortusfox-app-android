@@ -1,5 +1,8 @@
 package com.hortusfox.android;
 
+import static com.google.android.material.badge.BadgeDrawable.TOP_END;
+import static com.google.android.material.badge.BadgeDrawable.TOP_START;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +15,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,6 +35,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import java.net.HttpURLConnection;
@@ -40,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private ImageView appImage;
     public SwipeRefreshLayout refresher;
+    public static BadgeDrawable badgeDrawable;
     private ValueCallback<Uri> mUploadMessage;
     public ValueCallback<Uri[]> uploadMessage;
     public static final int REQUEST_SELECT_FILE = 100;
@@ -158,6 +165,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        int menuItemId = navigationView.getMenu().getItem(2).getItemId();
+        badgeDrawable = navigationView.getOrCreateBadge(menuItemId);
+        badgeDrawable.setBadgeGravity(TOP_END);
+        badgeDrawable.setVisible(false);
+
         this.swipeHandler = new Handler();
         final Runnable swipeRunnable = new Runnable() {
             @Override
@@ -199,6 +211,8 @@ public class MainActivity extends AppCompatActivity {
                 view.loadUrl("javascript:(function(){ let sorting = document.getElementsByClassName('nav-sorting'); if (sorting !== null) { sorting[0].style.marginTop = '52px'; } })();");
                 view.loadUrl("javascript:(function(){ let container = document.getElementsByClassName('container'); if (container) { container[0].style.marginTop = '45px'; } })();");
                 view.loadUrl("javascript:(function(){ let modalCards = document.getElementsByClassName('modal-card'); if (modalCards) { for (let i = 0; i < modalCards.length; i++) { modalCards[i].style.maxHeight = '85%'; } } })();");
+                view.loadUrl("javascript:(function(){ window.native.setTaskCount(window.currentOpenTaskCount); })();");
+                view.loadUrl("javascript:(function(){ let radio = document.getElementsByTagName('input'); for (let i = 0; i < radio.length; i++) { if (radio[i].type === 'radio') { radio[i].style.position = 'relative'; radio[i].style.top = '4px'; } } })();");
 
                 if (MainActivity.performMenuSelection) {
                     if (url.equals(BuildConfig.BASE_URL + "/")) {
@@ -464,5 +478,16 @@ public class MainActivity extends AppCompatActivity {
 }
 
 class JavaScriptInterface {
-
+    @JavascriptInterface
+    public void setTaskCount(int count)
+    {
+        if (count > 0) {
+            MainActivity.badgeDrawable.setNumber(count);
+            MainActivity.badgeDrawable.setVisible(true);
+        } else {
+            if (MainActivity.badgeDrawable.isVisible()) {
+                MainActivity.badgeDrawable.setVisible(false);
+            }
+        }
+    }
 }

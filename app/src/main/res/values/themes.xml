@@ -5,5 +5,5 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
-    <style name="Theme.HortusFox" parent="Base.Theme.HortusFox" />
+    <style name="Theme.HortusFox" parent="Theme.MaterialComponents.Light.Bridge" />
 </resources>

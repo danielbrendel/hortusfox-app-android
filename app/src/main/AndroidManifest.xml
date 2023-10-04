@@ -13,7 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.AppCompat.NoActionBar"
+        android:theme="@style/Theme.MaterialComponents.NoActionBar.Bridge"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"
