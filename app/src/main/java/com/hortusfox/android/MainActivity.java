@@ -6,11 +6,14 @@ import static com.google.android.material.badge.BadgeDrawable.TOP_START;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -21,16 +24,22 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.MimeTypeMap;
+import android.webkit.PermissionRequest;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebBackForwardList;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
@@ -39,17 +48,20 @@ import android.widget.Toast;
 import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private ImageView appImage;
     public SwipeRefreshLayout refresher;
     public static BadgeDrawable badgeDrawable;
-    private ValueCallback<Uri> mUploadMessage;
     public ValueCallback<Uri[]> uploadMessage;
-    public static final int REQUEST_SELECT_FILE = 100;
+    public static final int REQUEST_SELECT_CAMERA = 100;
     private final static int FILECHOOSER_RESULTCODE = 1;
     public static MainActivity instance = null;
     private SharedPreferences prefs = null;
@@ -62,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
     public static boolean doNotDoubleLoad = false;
     public static boolean performMenuSelection = true;
     public static boolean subsOverlayVisibility = false;
+    private Uri mCapturedImageURI;
+    private File photoFile = null;
 
     private boolean isURLReachable(String address)
     {
@@ -213,6 +227,7 @@ public class MainActivity extends AppCompatActivity {
                 view.loadUrl("javascript:(function(){ let modalCards = document.getElementsByClassName('modal-card'); if (modalCards) { for (let i = 0; i < modalCards.length; i++) { modalCards[i].style.maxHeight = '85%'; } } })();");
                 view.loadUrl("javascript:(function(){ window.native.setTaskCount(window.currentOpenTaskCount); })();");
                 view.loadUrl("javascript:(function(){ let radio = document.getElementsByTagName('input'); for (let i = 0; i < radio.length; i++) { if (radio[i].type === 'radio') { radio[i].style.position = 'relative'; radio[i].style.top = '4px'; } } })();");
+                view.loadUrl("javascript:(function(){ let file = document.getElementsByTagName('input'); for (let i = 0; i < file.length; i++) { if (file[i].type === 'file') { file[i].accept = 'image/*;capture=camera'; } } })();");
 
                 if (MainActivity.performMenuSelection) {
                     if (url.equals(BuildConfig.BASE_URL + "/")) {
@@ -245,58 +260,42 @@ public class MainActivity extends AppCompatActivity {
 
         webView.setWebChromeClient(new WebChromeClient() {
 
-            // For 3.0+ Devices (Start)
-            // onActivityResult attached before constructor
-            protected void openFileChooser(ValueCallback uploadMsg, String acceptType)
-            {
-                mUploadMessage = uploadMsg;
-                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                i.addCategory(Intent.CATEGORY_OPENABLE);
-                i.setType("image/*");
-                startActivityForResult(Intent.createChooser(i, "File Browser"), FILECHOOSER_RESULTCODE);
-            }
-
-
             // For Lollipop 5.0+ Devices
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams)
             {
-                if (uploadMessage != null) {
-                    uploadMessage.onReceiveValue(null);
-                    uploadMessage = null;
-                }
-
                 uploadMessage = filePathCallback;
 
-                Intent intent = fileChooserParams.createIntent();
-                try
-                {
-                    startActivityForResult(intent, REQUEST_SELECT_FILE);
-                } catch (ActivityNotFoundException e)
-                {
-                    uploadMessage = null;
-                    return false;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                    File folder = new File(getApplicationContext().getFilesDir(), "captured");
+                    if (!folder.exists()) {
+                        folder.mkdirs();
+                    }
+
+                    photoFile = new File(folder, "IMG_" + String.valueOf(System.currentTimeMillis()) + ".jpg");
+                    mCapturedImageURI = FileProvider.getUriForFile(getApplicationContext(), "com.hortusfox.android.provider", photoFile);
+
+                    Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCapturedImageURI);
+
+                    Intent contentIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                    contentIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                    contentIntent.setType("image/*");
+
+                    Intent chooserIntent = Intent.createChooser(contentIntent, "Medien auswählen");
+                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Parcelable[] { captureIntent });
+
+                    startActivityForResult(chooserIntent, FILECHOOSER_RESULTCODE);
                 }
+
                 return true;
             }
 
-            //For Android 4.1 only
-            protected void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture)
-            {
-                mUploadMessage = uploadMsg;
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-                startActivityForResult(Intent.createChooser(intent, "File Browser"), FILECHOOSER_RESULTCODE);
-            }
-
-            protected void openFileChooser(ValueCallback<Uri> uploadMsg)
-            {
-                mUploadMessage = uploadMsg;
-                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                i.addCategory(Intent.CATEGORY_OPENABLE);
-                i.setType("image/*");
-                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    request.grant(request.getResources());
+                }
             }
         });   // End setWebChromeClient
 
@@ -364,6 +363,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_SELECT_CAMERA) {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Du musst den Zugriff gewähren, um diese Funktion nutzen zu können", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void setOpenNavMenu(int menu) {
@@ -429,27 +434,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent intent) {
-
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-        {
-            if (requestCode == REQUEST_SELECT_FILE)
-            {
-                if (uploadMessage == null)
-                    return;
-                uploadMessage.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
-                uploadMessage = null;
-            }
-        }
-        else if (requestCode == FILECHOOSER_RESULTCODE)
-        {
-            if (null == mUploadMessage)
+        if (requestCode == FILECHOOSER_RESULTCODE) {
+            if (null == uploadMessage)
                 return;
-            // Use MainActivity.RESULT_OK if you're implementing WebView inside Fragment
-            // Use RESULT_OK only if you're implementing WebView inside an Activity
-            Uri result = intent == null || resultCode != MainActivity.RESULT_OK ? null : intent.getData();
-            mUploadMessage.onReceiveValue(result);
-            mUploadMessage = null;
+
+            Uri[] results = null;
+
+            if (resultCode == RESULT_OK) {
+                results = (intent == null) ? new Uri[] {mCapturedImageURI} : new Uri[] {intent.getData()};
+            }
+
+            uploadMessage.onReceiveValue(results);
+
+            uploadMessage = null;
+            mCapturedImageURI = null;
         } else {
             super.onActivityResult(requestCode, resultCode, intent);
         }
@@ -474,6 +472,10 @@ public class MainActivity extends AppCompatActivity {
     {
         MainActivity.appShutdown = false;
         super.onResume();
+
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { android.Manifest.permission.CAMERA }, REQUEST_SELECT_CAMERA);
+        }
     }
 }
 
