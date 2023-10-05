@@ -226,6 +226,8 @@ public class MainActivity extends AppCompatActivity {
                 view.loadUrl("javascript:(function(){ let container = document.getElementsByClassName('container'); if (container) { container[0].style.marginTop = '45px'; } })();");
                 view.loadUrl("javascript:(function(){ let modalCards = document.getElementsByClassName('modal-card'); if (modalCards) { for (let i = 0; i < modalCards.length; i++) { modalCards[i].style.maxHeight = '85%'; } } })();");
                 view.loadUrl("javascript:(function(){ window.native.setTaskCount(window.currentOpenTaskCount); })();");
+                view.loadUrl("javascript:(function(){ let elapp = document.getElementById('app'); if (elapp) { let c = document.createElement('span'); c.id = 'scroller-top'; elapp.insertBefore(c, elapp.firstChild); } })();");
+                view.loadUrl("javascript:(function(){ let scroll = document.getElementsByClassName('scroll-to-top'); if (scroll !== null) { scroll[0].style.bottom = '69px'; let inner = document.querySelector('.scroll-to-top-inner'); if (inner) { inner.innerHTML = '<a href=\"javascript:void(0);\" onclick=\"document.querySelector(\\'#scroller-top\\').scrollIntoView({behavior: \\'smooth\\'});\"><i class=\"fas fa-arrow-up fa-2x up-color\"></i></a>'; } } })();");
                 view.loadUrl("javascript:(function(){ let radio = document.getElementsByTagName('input'); for (let i = 0; i < radio.length; i++) { if (radio[i].type === 'radio') { radio[i].style.position = 'relative'; radio[i].style.top = '4px'; } } })();");
                 view.loadUrl("javascript:(function(){ let file = document.getElementsByTagName('input'); for (let i = 0; i < file.length; i++) { if (file[i].type === 'file') { file[i].accept = 'image/*;capture=camera'; } } })();");
 
