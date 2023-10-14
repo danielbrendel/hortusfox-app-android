@@ -77,6 +77,9 @@ public class MainActivity extends AppCompatActivity {
     public static boolean subsOverlayVisibility = false;
     private Uri mCapturedImageURI;
     private File photoFile = null;
+    public static String currentLang = "de";
+    public static boolean switchLang = false;
+    private Handler langHandler;
 
     private boolean isURLReachable(String address)
     {
@@ -89,6 +92,13 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public String getStringResource(String name)
+    {
+        @SuppressLint("DiscouragedApi")
+        int id = getResources().getIdentifier(name, "string", getPackageName());
+        return getResources().getString(id);
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
@@ -204,13 +214,40 @@ public class MainActivity extends AppCompatActivity {
         };
         this.swipeHandler.postDelayed(swipeRunnable, 1000);
 
+        this.langHandler = new Handler();
+        final Runnable langRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (MainActivity.switchLang) {
+                    if (Objects.equals(MainActivity.currentLang, "de")) {
+                        MainActivity.instance.navigationView.getMenu().getItem(0).setTitle("Home");
+                        MainActivity.instance.navigationView.getMenu().getItem(1).setTitle("Hinzufügen");
+                        MainActivity.instance.navigationView.getMenu().getItem(2).setTitle("Aufgaben");
+                        MainActivity.instance.navigationView.getMenu().getItem(3).setTitle("Suche");
+                        MainActivity.instance.navigationView.getMenu().getItem(4).setTitle("Profil");
+                    } else {
+                        MainActivity.instance.navigationView.getMenu().getItem(0).setTitle("Home");
+                        MainActivity.instance.navigationView.getMenu().getItem(1).setTitle("Add");
+                        MainActivity.instance.navigationView.getMenu().getItem(2).setTitle("Tasks");
+                        MainActivity.instance.navigationView.getMenu().getItem(3).setTitle("Search");
+                        MainActivity.instance.navigationView.getMenu().getItem(4).setTitle("Profile");
+                    }
+
+                    MainActivity.switchLang = false;
+                }
+
+                langHandler.postDelayed(this, 2000);
+            }
+        };
+        this.langHandler.postDelayed(langRunnable, 1000);
+
         this.webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
                 if (errorResponse.getStatusCode() == 403) {
                     AlertDialog.Builder dlgAlert = new AlertDialog.Builder(MainActivity.this);
-                    dlgAlert.setMessage("Der Zugriff wurde verweigert. Möglicherweise ist dein Zugriffscode ungültig.");
-                    dlgAlert.setTitle("Zugriff verweigert");
+                    dlgAlert.setMessage(getStringResource("errorAccessForbiddenBody_" + MainActivity.currentLang));
+                    dlgAlert.setTitle(getStringResource("errorAccessForbiddenTitle_" + MainActivity.currentLang));
                     dlgAlert.setPositiveButton("Ok",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
@@ -245,6 +282,7 @@ public class MainActivity extends AppCompatActivity {
                 view.loadUrl("javascript:(function(){ let scroll = document.getElementsByClassName('scroll-to-top'); if (scroll !== null) { scroll[0].style.bottom = '69px'; let inner = document.querySelector('.scroll-to-top-inner'); if (inner) { inner.innerHTML = '<a href=\"javascript:void(0);\" onclick=\"document.querySelector(\\'#scroller-top\\').scrollIntoView({behavior: \\'smooth\\'});\"><i class=\"fas fa-arrow-up fa-2x up-color\"></i></a>'; } } })();");
                 view.loadUrl("javascript:(function(){ let radio = document.getElementsByTagName('input'); for (let i = 0; i < radio.length; i++) { if (radio[i].type === 'radio') { radio[i].style.position = 'relative'; radio[i].style.top = '4px'; } } })();");
                 view.loadUrl("javascript:(function(){ let file = document.getElementsByTagName('input'); for (let i = 0; i < file.length; i++) { if (file[i].type === 'file') { file[i].accept = 'image/*;capture=camera'; } } })();");
+                view.loadUrl("javascript:(function(){ window.native.setCurrentLanguage(window.currentLocale); })();");
 
                 if (MainActivity.performMenuSelection) {
                     if (url.equals(BuildConfig.BASE_URL + "/")) {
@@ -299,7 +337,7 @@ public class MainActivity extends AppCompatActivity {
                     contentIntent.addCategory(Intent.CATEGORY_OPENABLE);
                     contentIntent.setType("image/*");
 
-                    Intent chooserIntent = Intent.createChooser(contentIntent, "Medien auswählen");
+                    Intent chooserIntent = Intent.createChooser(contentIntent, getStringResource("selectMedia_" + MainActivity.currentLang));
                     chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Parcelable[] { captureIntent });
 
                     startActivityForResult(chooserIntent, FILECHOOSER_RESULTCODE);
@@ -337,8 +375,8 @@ public class MainActivity extends AppCompatActivity {
 
                             try {
                                 AlertDialog.Builder dlgAlert = new AlertDialog.Builder(MainActivity.this);
-                                dlgAlert.setMessage("Es konnte keine Verbindung zum Server aufgebaut werden. Bitte versuche es später erneut.");
-                                dlgAlert.setTitle("Verbindungsfehler");
+                                dlgAlert.setMessage(getStringResource("errorNoConnectionBody_" + MainActivity.currentLang));
+                                dlgAlert.setTitle(getStringResource("errorNoConnectionTitle_" + MainActivity.currentLang));
                                 dlgAlert.setPositiveButton("Ok",
                                         new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int which) {
@@ -347,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
                                         });
                                 dlgAlert.create().show();
                             } catch (Exception e) {
-                                Toast.makeText(MainActivity.this, "Connection failed", Toast.LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.this, getStringResource("errorNoConnectionTitle_" + MainActivity.currentLang), Toast.LENGTH_LONG).show();
                             }
                         }
                     });
@@ -383,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == REQUEST_SELECT_CAMERA) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Du musst den Zugriff gewähren, um diese Funktion nutzen zu können", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getStringResource("errorPermissionRequestDenied_" + MainActivity.currentLang), Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -508,5 +546,12 @@ class JavaScriptInterface {
                 MainActivity.badgeDrawable.setVisible(false);
             }
         }
+    }
+
+    @JavascriptInterface
+    public void setCurrentLanguage(String lang)
+    {
+        MainActivity.currentLang = lang;
+        MainActivity.switchLang = true;
     }
 }
