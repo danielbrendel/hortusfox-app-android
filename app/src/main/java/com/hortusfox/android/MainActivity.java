@@ -39,6 +39,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebBackForwardList;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -204,8 +205,22 @@ public class MainActivity extends AppCompatActivity {
         this.swipeHandler.postDelayed(swipeRunnable, 1000);
 
         this.webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+                if (errorResponse.getStatusCode() == 403) {
+                    AlertDialog.Builder dlgAlert = new AlertDialog.Builder(MainActivity.this);
+                    dlgAlert.setMessage("Der Zugriff wurde verweigert. Möglicherweise ist dein Zugriffscode ungültig.");
+                    dlgAlert.setTitle("Zugriff verweigert");
+                    dlgAlert.setPositiveButton("Ok",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //dismiss the dialog
+                                }
+                            });
+                    dlgAlert.create().show();
+                }
 
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                super.onReceivedHttpError(view, request, errorResponse);
             }
 
             public void onPageFinished(WebView view, String url) {
