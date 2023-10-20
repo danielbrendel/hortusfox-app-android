@@ -117,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
         this.webView.getSettings().setAllowFileAccess(true);
         this.webView.getSettings().setGeolocationEnabled(true);
         this.webView.getSettings().setUserAgentString("com.hortusfox.android");
+        this.webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
 
         JavaScriptInterface javaScriptInterface = new JavaScriptInterface();
         this.webView.addJavascriptInterface(javaScriptInterface, "native");
