@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     public static boolean subsOverlayVisibility = false;
     private Uri mCapturedImageURI;
     private File photoFile = null;
-    public static String currentLang = "de";
+    public static String currentLang = "en";
     public static boolean switchLang = false;
     private Handler langHandler;
 
