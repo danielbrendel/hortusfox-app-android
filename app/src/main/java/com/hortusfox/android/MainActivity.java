@@ -252,7 +252,6 @@ public class MainActivity extends AppCompatActivity {
                     dlgAlert.setPositiveButton("Ok",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
-                                    //dismiss the dialog
                                 }
                             });
                     dlgAlert.create().show();
@@ -374,7 +373,6 @@ public class MainActivity extends AppCompatActivity {
                                 dlgAlert.setPositiveButton("Ok",
                                         new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int which) {
-                                                //dismiss the dialog
                                             }
                                         });
                                 dlgAlert.create().show();
