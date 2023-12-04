@@ -355,12 +355,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });   // End setWebChromeClient
 
-        CookieManager.getInstance().setCookie(BuildConfig.BASE_URL + "/", "auth_token=" + BuildConfig.AUTH_TOKEN, new ValueCallback<Boolean>() {
-            @Override
-            public void onReceiveValue(Boolean aBoolean) {
-                launchWebsite();
-            }
-        });
+        launchWebsite();
     }
 
     public void launchWebsite()
