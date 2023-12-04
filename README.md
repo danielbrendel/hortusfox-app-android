@@ -10,7 +10,7 @@ Released under the MIT license
 ## Description
 This app is for android mobile phones or tablets in order to comfortably
 use the <a href="https://github.com/danielbrendel/hortusfox-web">HortusFox Plant Management system</a>.
-It is used to access the HortusFox web application comfortably providing a more native mobile experience.
+This way a more native mobile experience should be provided.
 
 ## Installation
 The build process is very quick. You just need to set the URL to your HortusFox instance in order to build 
