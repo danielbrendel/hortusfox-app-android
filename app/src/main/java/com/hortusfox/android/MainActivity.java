@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                     MainActivity.performMenuSelection = false;
-                    webView.loadUrl(BuildConfig.BASE_URL + "/search");
+                    webView.loadUrl(BuildConfig.BASE_URL + "/inventory");
                     return true;
                 } else if (item.getItemId() == R.id.menu5) {
                     if (MainActivity.doNotDoubleLoad) {
@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                     MainActivity.performMenuSelection = false;
-                    webView.loadUrl(BuildConfig.BASE_URL + "/profile");
+                    webView.loadUrl(BuildConfig.BASE_URL + "/search");
                     return true;
                 }
                 return false;
@@ -224,14 +224,14 @@ public class MainActivity extends AppCompatActivity {
                         MainActivity.instance.navigationView.getMenu().getItem(0).setTitle("Home");
                         MainActivity.instance.navigationView.getMenu().getItem(1).setTitle("Hinzufügen");
                         MainActivity.instance.navigationView.getMenu().getItem(2).setTitle("Aufgaben");
-                        MainActivity.instance.navigationView.getMenu().getItem(3).setTitle("Suche");
-                        MainActivity.instance.navigationView.getMenu().getItem(4).setTitle("Profil");
+                        MainActivity.instance.navigationView.getMenu().getItem(3).setTitle("Inventar");
+                        MainActivity.instance.navigationView.getMenu().getItem(4).setTitle("Suche");
                     } else {
                         MainActivity.instance.navigationView.getMenu().getItem(0).setTitle("Home");
                         MainActivity.instance.navigationView.getMenu().getItem(1).setTitle("Add");
                         MainActivity.instance.navigationView.getMenu().getItem(2).setTitle("Tasks");
-                        MainActivity.instance.navigationView.getMenu().getItem(3).setTitle("Search");
-                        MainActivity.instance.navigationView.getMenu().getItem(4).setTitle("Profile");
+                        MainActivity.instance.navigationView.getMenu().getItem(3).setTitle("Inventory");
+                        MainActivity.instance.navigationView.getMenu().getItem(4).setTitle("Search");
                     }
 
                     MainActivity.switchLang = false;
@@ -291,12 +291,14 @@ public class MainActivity extends AppCompatActivity {
                     } else if (url.equals(BuildConfig.BASE_URL + "/tasks")) {
                         MainActivity.doNotDoubleLoad = true;
                         MainActivity.this.setOpenNavMenu(2);
+                    } else if (url.equals(BuildConfig.BASE_URL + "/inventory")) {
+                        MainActivity.doNotDoubleLoad = true;
+                        MainActivity.this.setOpenNavMenu(3);
                     } else if (url.equals(BuildConfig.BASE_URL + "/search")) {
                         MainActivity.doNotDoubleLoad = true;
-                        MainActivity.this.setOpenNavMenu(3);
-                    } else if (url.equals(BuildConfig.BASE_URL + "/profile")) {
-                        MainActivity.doNotDoubleLoad = true;
-                        MainActivity.this.setOpenNavMenu(3);
+                        MainActivity.this.setOpenNavMenu(4);
+                    } else {
+                        uncheckAllBottomMenuItems();
                     }
                 }
 
@@ -430,6 +432,17 @@ public class MainActivity extends AppCompatActivity {
         } else if (menu == 4) {
             navigationView.setSelectedItemId(R.id.menu5);
         }
+    }
+
+    public void uncheckAllBottomMenuItems()
+    {
+        navigationView.getMenu().setGroupCheckable(0, true, false);
+
+        for (int i = 0; i < 5; i++) {
+            navigationView.getMenu().getItem(i).setChecked(false);
+        }
+
+        navigationView.getMenu().setGroupCheckable(0, true, true);
     }
 
     public View viewById(int id)

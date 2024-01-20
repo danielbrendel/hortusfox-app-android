@@ -17,10 +17,12 @@
 
     <item
         android:id="@+id/menu4"
-        android:icon="@drawable/ic_search"
-        android:title="Search" />
+        android:icon="@drawable/ic_inventory"
+        android:title="Inventory" />
+
     <item
         android:id="@+id/menu5"
-        android:icon="@drawable/ic_profile"
-        android:title="Profile" />
+        android:icon="@drawable/ic_search"
+        android:title="Search" />
+
 </menu>
