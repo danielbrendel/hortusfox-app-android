@@ -32,10 +32,12 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "BASE_URL", getProps("release", "BASE_URL")
+            buildConfigField "Boolean", "STORE_CAMERA_PHOTOS", getProps("release", "STORE_CAMERA_PHOTOS")
         }
 
         debug {
             buildConfigField "String", "BASE_URL", getProps("debug", "BASE_URL")
+            buildConfigField "Boolean", "STORE_CAMERA_PHOTOS", getProps("debug", "STORE_CAMERA_PHOTOS")
         }
     }
     compileOptions {

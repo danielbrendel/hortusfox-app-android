@@ -52,8 +52,11 @@ import com.google.android.material.navigation.NavigationBarView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -80,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     public static String currentLang = "en";
     public static boolean switchLang = false;
     private Handler langHandler;
+    public static String imageFileName = "";
 
     private boolean isURLReachable(String address)
     {
@@ -327,7 +331,9 @@ public class MainActivity extends AppCompatActivity {
                         folder.mkdirs();
                     }
 
-                    photoFile = new File(folder, "IMG_" + String.valueOf(System.currentTimeMillis()) + ".jpg");
+                    MainActivity.imageFileName = "IMG_" + String.valueOf(System.currentTimeMillis()) + ".jpg";
+
+                    photoFile = new File(folder, imageFileName);
                     mCapturedImageURI = FileProvider.getUriForFile(getApplicationContext(), "com.hortusfox.android.provider", photoFile);
 
                     Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -502,6 +508,27 @@ public class MainActivity extends AppCompatActivity {
 
             if (resultCode == RESULT_OK) {
                 results = (intent == null) ? new Uri[] {mCapturedImageURI} : new Uri[] {intent.getData()};
+
+                if (BuildConfig.STORE_CAMERA_PHOTOS) {
+                    if (mCapturedImageURI != null) {
+                        File storageFolder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Hortusfox");
+                        if (!storageFolder.exists()) {
+                            storageFolder.mkdirs();
+                        }
+
+                        File backupFolder = new File(storageFolder, MainActivity.imageFileName);
+
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                Files.copy(photoFile.toPath(), backupFolder.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                            } else {
+                                Toast.makeText(MainActivity.this, "Oops! Your Android version is not supported.", Toast.LENGTH_LONG).show();
+                            }
+                        } catch (IOException e) {
+                            Log.e("Error", e.getMessage());
+                        }
+                    }
+                }
             }
 
             uploadMessage.onReceiveValue(results);
