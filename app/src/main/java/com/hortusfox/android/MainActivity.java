@@ -18,7 +18,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
+import android.media.VolumeShaper;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -57,6 +59,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -83,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
     public static String currentLang = "en";
     public static boolean switchLang = false;
     private Handler langHandler;
-    public static String imageFileName = "";
+    public static String photoFormattedName = "";
 
     private boolean isURLReachable(String address)
     {
@@ -331,9 +336,9 @@ public class MainActivity extends AppCompatActivity {
                         folder.mkdirs();
                     }
 
-                    MainActivity.imageFileName = "IMG_" + String.valueOf(System.currentTimeMillis()) + ".jpg";
-
-                    photoFile = new File(folder, imageFileName);
+                    String dateTimeExpression = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                    photoFormattedName = "IMG_" + dateTimeExpression + ".jpg";
+                    photoFile = new File(folder, photoFormattedName);
                     mCapturedImageURI = FileProvider.getUriForFile(getApplicationContext(), "com.hortusfox.android.provider", photoFile);
 
                     Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -484,6 +489,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
     public void onBackPressed() {
         if (this.webView.canGoBack()) {
             if (MainActivity.lastLoadedUrl.equals(BuildConfig.BASE_URL + "/")) {
@@ -516,7 +526,8 @@ public class MainActivity extends AppCompatActivity {
                             storageFolder.mkdirs();
                         }
 
-                        File backupFolder = new File(storageFolder, MainActivity.imageFileName);
+
+                        File backupFolder = new File(storageFolder, photoFormattedName);
 
                         try {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
