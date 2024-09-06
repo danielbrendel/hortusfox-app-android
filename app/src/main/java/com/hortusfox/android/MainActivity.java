@@ -1,9 +1,11 @@
 package com.hortusfox.android;
 
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.google.android.material.badge.BadgeDrawable.TOP_END;
 import static com.google.android.material.badge.BadgeDrawable.TOP_START;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -65,6 +67,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String BASE_URL_DEFAULT = "https://www.hortusfox.com";
+    private static final Boolean STORE_CAMERA_PHOTOS_DEFAULT = true;
     private WebView webView;
     private ImageView appImage;
     public SwipeRefreshLayout refresher;
@@ -74,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
     private final static int FILECHOOSER_RESULTCODE = 1;
     public static MainActivity instance = null;
     private SharedPreferences prefs = null;
+    private String baseURL;
+    private Boolean storeCameraPhotos;
+    private SharedPreferences.OnSharedPreferenceChangeListener sharedPrefsChangeListener;
     public static boolean refresherVisibility = true;
     public static boolean webAppLoaded = false;
     public static boolean appShutdown = false;
@@ -118,7 +125,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        this.prefs = getSharedPreferences("com.hortusfox.android", MODE_PRIVATE);
+        prefs = getDefaultSharedPreferences(this);
+
+        sharedPrefsChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @Nullable String key) {
+                if (key != null){
+                    if (key.equals("STORE_CAMERA_PHOTOS")){
+                        baseURL = sharedPreferences.getString(key, MainActivity.BASE_URL_DEFAULT);
+                        Log.d("info", baseURL);
+                    } else if (key.equals("BASE_URL")){
+                        storeCameraPhotos = sharedPreferences.getBoolean(key, MainActivity.STORE_CAMERA_PHOTOS_DEFAULT);
+                    }
+                }
+            }
+        };
+        prefs.registerOnSharedPreferenceChangeListener(sharedPrefsChangeListener);
+
+
+        baseURL = prefs.getString("BASE_URL", MainActivity.BASE_URL_DEFAULT);
+        Log.d("info", baseURL);
+        storeCameraPhotos = prefs.getBoolean("STORE_CAMERA_PHOTOS", true);
 
         this.webView = (WebView)findViewById(R.id.webview);
         this.webView.getSettings().setJavaScriptEnabled(true);
@@ -161,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                     MainActivity.performMenuSelection = false;
-                    webView.loadUrl(BuildConfig.BASE_URL + "/");
+                    webView.loadUrl(baseURL + "/");
                     return true;
                 } else if (item.getItemId() == R.id.menu2) {
                     if (MainActivity.doNotDoubleLoad) {
@@ -177,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                     MainActivity.performMenuSelection = false;
-                    webView.loadUrl(BuildConfig.BASE_URL + "/tasks");
+                    webView.loadUrl(baseURL + "/tasks");
                     return true;
                 } else if (item.getItemId() == R.id.menu4) {
                     if (MainActivity.doNotDoubleLoad) {
@@ -185,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                     MainActivity.performMenuSelection = false;
-                    webView.loadUrl(BuildConfig.BASE_URL + "/inventory");
+                    webView.loadUrl(baseURL + "/inventory");
                     return true;
                 } else if (item.getItemId() == R.id.menu5) {
                     if (MainActivity.doNotDoubleLoad) {
@@ -193,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                     MainActivity.performMenuSelection = false;
-                    webView.loadUrl(BuildConfig.BASE_URL + "/search");
+                    webView.loadUrl(baseURL + "/search");
                     return true;
                 }
                 return false;
@@ -294,16 +321,16 @@ public class MainActivity extends AppCompatActivity {
                 view.loadUrl("javascript:(function(){ window.native.setCurrentLanguage(window.currentLocale); })();");
 
                 if (MainActivity.performMenuSelection) {
-                    if (url.equals(BuildConfig.BASE_URL + "/")) {
+                    if (url.equals(baseURL + "/")) {
                         MainActivity.doNotDoubleLoad = true;
                         MainActivity.this.setOpenNavMenu(0);
-                    } else if (url.equals(BuildConfig.BASE_URL + "/tasks")) {
+                    } else if (url.equals(baseURL + "/tasks")) {
                         MainActivity.doNotDoubleLoad = true;
                         MainActivity.this.setOpenNavMenu(2);
-                    } else if (url.equals(BuildConfig.BASE_URL + "/inventory")) {
+                    } else if (url.equals(baseURL + "/inventory")) {
                         MainActivity.doNotDoubleLoad = true;
                         MainActivity.this.setOpenNavMenu(3);
-                    } else if (url.equals(BuildConfig.BASE_URL + "/search")) {
+                    } else if (url.equals(baseURL + "/search")) {
                         MainActivity.doNotDoubleLoad = true;
                         MainActivity.this.setOpenNavMenu(4);
                     } else {
@@ -373,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
         Thread launcher = new Thread() {
             @Override
             public void run() {
-                if (!isURLReachable(BuildConfig.BASE_URL + "/")) {
+                if (!isURLReachable(baseURL + "/")) {
                     MainActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -398,7 +425,7 @@ public class MainActivity extends AppCompatActivity {
                     MainActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            webView.loadUrl(BuildConfig.BASE_URL + "/");
+                            webView.loadUrl(baseURL + "/");
                         }
                     });
                 }
@@ -496,7 +523,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (this.webView.canGoBack()) {
-            if (MainActivity.lastLoadedUrl.equals(BuildConfig.BASE_URL + "/")) {
+            if (MainActivity.lastLoadedUrl.equals(baseURL + "/")) {
                 super.onBackPressed();
                 return;
             }
@@ -519,7 +546,7 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 results = (intent == null) ? new Uri[] {mCapturedImageURI} : new Uri[] {intent.getData()};
 
-                if (BuildConfig.STORE_CAMERA_PHOTOS) {
+                if (storeCameraPhotos) {
                     if (mCapturedImageURI != null) {
                         File storageFolder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Hortusfox");
                         if (!storageFolder.exists()) {
@@ -555,6 +582,7 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy()
     {
         MainActivity.appShutdown = true;
+        prefs.unregisterOnSharedPreferenceChangeListener(sharedPrefsChangeListener);
         super.onDestroy();
     }
 
